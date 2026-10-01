@@ -5,7 +5,7 @@ pub mod platform;
 mod storage;
 
 use commands::{dispatch_logged, AppState};
-use notch::{NotchAction, NotchConfig, NotchWindowController};
+use notch::{NotchAction, NotchConfig, NotchRuntime};
 use platform::FileSystemService;
 use std::sync::Mutex;
 use tauri::{
@@ -34,12 +34,12 @@ pub fn run() {
         }).build())
         .invoke_handler(tauri::generate_handler![commands::core_status, commands::platform_info,
             commands::screen_scale_factor, commands::hide_window, commands::quit_application,
-            commands::notch_snapshot, commands::notch_action, commands::notch_ready])
+            commands::notch_snapshot, commands::notch_action, commands::notch_ready, commands::notch_motion])
         .setup(|app| {
             let config = NotchConfig::from_environment()?;
             let platform = platform::NativePlatform::new(app.handle().clone());
             let storage = storage::Storage::open(&platform.app_data_dir()?)?;
-            app.manage(AppState { platform: Box::new(platform), storage: Mutex::new(storage), notch: Mutex::new(NotchWindowController::new(config.clone())) });
+            app.manage(AppState { platform: Box::new(platform), storage: Mutex::new(storage), notch: Mutex::new(NotchRuntime::new(config.clone())) });
             match config.shortcut.parse::<Shortcut>() {
                 Ok(shortcut) => if let Err(error) = app.global_shortcut().register(shortcut) {
                     log::error!("Cannot register TOGGLE_ASSISTANT ({}): {error}. Tray remains available.", config.shortcut);

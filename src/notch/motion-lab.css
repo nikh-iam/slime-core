@@ -1,0 +1,5 @@
+.motion-lab { padding: 24px; height: 100vh; overflow: auto; background: #242830; color: #eee; font: 14px system-ui; }
+.motion-lab button, .motion-lab label { margin: 5px; padding: 8px; }
+.motion-stage { position: relative; height: 230px; background: repeating-linear-gradient(45deg, #404650 0 12px, #353b45 12px 24px); }
+.motion-host { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); outline: 1px dashed #60bcb0; }
+.lab-content { height: 70px; border-radius: 10px; background: repeating-linear-gradient(0deg, #56616b 0 8px, transparent 8px 20px); }

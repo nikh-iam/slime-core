@@ -132,7 +132,7 @@ newer state. The native host stays hidden until the first surface is rendered.
 
 Sizes are clamped to the work area. Clicking the placeholder toggles collapsed/compact
 (or returns expanded to collapsed). These are temporary validation interactions, with
-no real content. **Ctrl+Alt+Shift+F12** invokes the semantic `TOGGLE_ASSISTANT` action:
+no real content. **Alt+S** invokes the semantic `TOGGLE_ASSISTANT` action:
 hidden/collapsed/compact → expanded and focused; expanded → collapsed. This uncommon
 development default is configurable because other installed software may reserve it.
 Registration conflicts are logged and leave tray controls available.
@@ -141,7 +141,7 @@ Configure before launch (no settings window):
 
 ```powershell
 $env:SLIME_NOTCH_TOP_MARGIN = '12'              # logical pixels, 0–200
-$env:SLIME_ASSISTANT_SHORTCUT = 'Ctrl+Alt+Shift+F12'
+$env:SLIME_ASSISTANT_SHORTCUT = 'Alt+S'
 # Optional: use an exact Windows monitor name instead of the primary monitor.
 # $env:SLIME_NOTCH_MONITOR = '\\.\DISPLAY2'
 npm run tauri dev
@@ -163,7 +163,7 @@ inside the platform adapter without changing that state policy.
    of the primary work area. Check transparent corners and the absence of any app panel.
 2. Click to widen/collapse; verify the native bounds follow the surface, the center stays
    fixed (within rounding), and no white frame flashes.
-3. Focus another application and press Ctrl+Alt+Shift+F12; verify expansion/focus, then
+3. Focus another application and press Alt+S; verify expansion/focus, then
    collapse. Use tray Hide and repeat the shortcut to summon from hidden.
 4. Verify tray Show, Hide, left-click restore, and Alt+F4 hide without process exit.
 5. Launch the built executable twice; verify one process/window remains and restores.
@@ -179,3 +179,8 @@ Reference: [Tauri configuration](https://v2.tauri.app/reference/config/),
 ## License
 
 This project is open-source and available under the [MIT License](LICENSE).
+
+
+## Continuous notch motion
+
+Semantic states are spring-motion destinations. See [notch motion architecture and validation](docs/notch-motion.md) for layer ownership, native host coalescing, diagnostics, and acceptance limits.

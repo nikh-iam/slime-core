@@ -5,6 +5,7 @@ import { reportError } from '../shared/logging';
 // A projection of native state, never a second transition policy.
 export function useNotch(service: NotchService) {
   const [snapshot, setSnapshot] = useState<NotchSnapshot>({ state: 'COLLAPSED', revision: -1 });
+  const [ready, setReady] = useState(false);
   useEffect(() => {
     let active = true;
     let unsubscribe: (() => void) | undefined;
@@ -21,7 +22,7 @@ export function useNotch(service: NotchService) {
       // Native host stays hidden until React has painted the surface.
       frame = requestAnimationFrame(() => {
         frame = requestAnimationFrame(() => {
-          if (active) void service.ready().then(accept).catch(reportError);
+          if (active) void service.ready().then((next) => { accept(next); if (active) setReady(true); }).catch(reportError);
         });
       });
     })().catch(reportError);
@@ -33,5 +34,5 @@ export function useNotch(service: NotchService) {
       setSnapshot((current) => next.revision >= current.revision ? next : current);
     }).catch(reportError);
   }
-  return { state: snapshot.state, dispatch };
+  return { snapshot, ready, dispatch };
 }

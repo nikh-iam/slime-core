@@ -1,6 +1,6 @@
 use crate::{
     error::{AppError, CommandError},
-    notch::{NotchAction, NotchSnapshot, NotchWindowController},
+    notch::{HostSize, MotionBounds, NotchAction, NotchRuntime, NotchSnapshot},
     platform::{PlatformInfo, PlatformService},
     storage::{Settings, Storage},
 };
@@ -11,7 +11,7 @@ use tauri::{Emitter, Manager, State};
 pub struct AppState {
     pub platform: Box<dyn PlatformService>,
     pub storage: Mutex<Storage>,
-    pub notch: Mutex<NotchWindowController>,
+    pub notch: Mutex<NotchRuntime>,
 }
 #[derive(Serialize)]
 pub struct CoreStatus {
@@ -37,6 +37,17 @@ pub fn dispatch_logged(app: &tauri::AppHandle, action: NotchAction, focus: bool)
     if let Err(error) = dispatch(app, action, focus) {
         log::error!("Notch transition failed: {error}");
     }
+}
+#[tauri::command]
+pub fn notch_motion(
+    state: State<'_, AppState>,
+    bounds: MotionBounds,
+) -> Result<HostSize, CommandError> {
+    Ok(state
+        .notch
+        .lock()
+        .map_err(|_| AppError::State)?
+        .motion(state.platform.as_ref(), bounds)?)
 }
 #[tauri::command]
 pub fn notch_snapshot(state: State<'_, AppState>) -> Result<NotchSnapshot, CommandError> {

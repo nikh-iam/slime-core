@@ -1,5 +1,5 @@
 mod window_controller;
-pub use window_controller::NotchWindowController;
+pub use window_controller::{HostSize, MotionBounds, NotchRuntime};
 
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +17,8 @@ pub enum NotchState {
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum NotchAction {
     ToggleCompact,
+    Compact,
+    Expand,
     ToggleAssistant,
     Show,
     Hide,
@@ -44,9 +46,11 @@ impl NotchController {
         }
     }
     pub fn next(&self, action: NotchAction) -> NotchState {
-        use NotchAction::*;
+        use NotchAction::{Collapse, Expand, Hide, Show, ToggleAssistant, ToggleCompact};
         use NotchState::*;
         match action {
+            NotchAction::Compact => NotchState::Compact,
+            Expand => Expanded,
             Hide => Hidden,
             Collapse => Collapsed,
             Show => {
@@ -93,7 +97,7 @@ impl Default for NotchConfig {
         Self {
             top_margin: 12.0,
             monitor: None,
-            shortcut: "Ctrl+Alt+Shift+F12".into(),
+            shortcut: "Alt+S".into(),
         }
     }
 }

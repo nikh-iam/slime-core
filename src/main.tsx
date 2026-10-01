@@ -8,6 +8,11 @@ import './ui/styles.css';
 
 window.addEventListener('error', (event) => reportError(event.error ?? event.message));
 window.addEventListener('unhandledrejection', (event) => reportError(event.reason));
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+if (import.meta.env.DEV && new URLSearchParams(location.search).has('notch-motion-lab')) {
+  void import('./notch/NotchMotionLab').then(({ NotchMotionLab }) => root.render(<React.StrictMode><NotchMotionLab /></React.StrictMode>));
+} else if (import.meta.env.DEV && new URLSearchParams(location.search).has('character-lab')) {
+  void import('./character/slime/CharacterLab').then(({ CharacterLab }) => root.render(<React.StrictMode><CharacterLab /></React.StrictMode>));
+} else root.render(
   <React.StrictMode><ErrorBoundary onFailure={() => { void desktop.window.hide().catch(reportError); }}><App notch={desktop.notch} /></ErrorBoundary></React.StrictMode>,
 );

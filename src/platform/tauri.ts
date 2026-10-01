@@ -13,6 +13,7 @@ export const desktop: DesktopServices = {
   notch: {
     snapshot: () => invoke<NotchSnapshot>('notch_snapshot'),
     ready: () => invoke<NotchSnapshot>('notch_ready'),
+    motion: (bounds) => invoke('notch_motion', { bounds }),
     dispatch: (action) => invoke<NotchSnapshot>('notch_action', { action }),
     subscribe: async (listener) => {
       const unlisten = await listen<NotchSnapshot>('notch-state', (event) => listener(event.payload), { target: { kind: 'WebviewWindow', label: 'notch' } });
