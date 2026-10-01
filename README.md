@@ -1,0 +1,113 @@
+# Slime desktop core
+
+Phase 0: Tauri 2, React + TypeScript, and Rust. Windows is the only enabled target.
+The temporary panel checks transparency, dragging, always-on-top settings, and tray lifecycle.
+There is no AI, screen capture/analysis, file automation, or external integration.
+Existing artwork in `common/` is preserved and not used as a final design.
+
+## Development (Windows)
+
+Install Node.js 22.13+ LTS, stable Rust (1.90+) with the `x86_64-pc-windows-msvc` toolchain,
+Visual Studio Build Tools (Desktop development with C++, including a Windows SDK),
+and Microsoft Edge WebView2 Runtime. Reopen your terminal after installing Rust;
+`cargo --version` and `rustc --version` must work on PATH.
+
+```powershell
+npm ci
+npm run tauri dev
+```
+
+`npm run dev` serves only the frontend; native operations require the Tauri process.
+Vite binds loopback port 1420 with strict port checking, so a conflicting process
+causes a clear failure instead of silently changing the desktop URL.
+
+```powershell
+npm run typecheck
+npm run lint
+npm run build
+npm run check:rust
+npm run tauri build -- --no-bundle
+npm run tauri build
+```
+
+`npm run validate` runs lint, TypeScript/frontend build, Rust formatting, Clippy with
+warnings denied, Rust tests, and a release executable build. The final command above
+also produces an NSIS installer under `src-tauri/target/release/bundle/nsis`.
+Commit both dependency lockfiles; generated output and local tooling are ignored.
+
+## Architecture
+
+| Location | Responsibility |
+| --- | --- |
+| `src/ui` | Temporary React surface and render error boundary |
+| `src/character` | Reserved character engine boundary |
+| `src/assistant` | Reserved assistant orchestration boundary |
+| `src/platform/contracts.ts` | OS-neutral service interfaces |
+| `src/platform/tauri.ts` | IPC transport; contains no Windows assumptions |
+| `src/ai`, `src/tools`, `src/permissions`, `src/integrations` | Explicit future module boundaries |
+| `src/storage`, `src/shared` | Persistence boundary and shared frontend data types |
+| `src-tauri/src/platform` | Native service traits and Windows adapter |
+| `src-tauri/src/storage` | App-owned SQLite and settings |
+| `src-tauri/src/commands.rs` | Small typed IPC boundary and setting coordination |
+| `src-tauri/src/lib.rs` | Composition, logging, single instance, and tray lifecycle |
+
+The UI receives `DesktopServices`; it does not import Tauri. Rust command handlers
+depend on `PlatformService` and its constituent traits. Windows selection occurs
+only at native composition. Add an adapter implementing those traits and select it
+with target configuration when another OS is actually supported. macOS/Linux builds
+are deliberately disabled; no placeholder OS implementations are included.
+
+Window, app lifecycle, scale-factor queries, and the application data directory work
+on Windows now. Clipboard, notification delivery, secure secrets, and arbitrary file
+access are explicit unavailable boundaries, not pretend implementations. They are
+not exposed as native commands. Implement and permission those adapters when needed.
+Secure storage has no plaintext fallback.
+
+## Persistence, security, and lifecycle
+
+SQLite initializes `core.sqlite3` in Tauri's app data directory (normally
+`%APPDATA%\com.slime.core` on Windows). It uses WAL, a busy timeout, schema
+version 1, and a constrained singleton settings row. Always-on-top changes persist
+immediately and restore at startup; failed writes attempt to restore window state.
+Invalid databases are reported, never silently replaced. Future schema changes need
+versioned migrations. Settings contain no credentials.
+
+Native logging uses the Tauri log plugin with 2 MB rotation; on Windows its default
+log directory is under the application's local data directory. Frontend errors also
+flow to that logger. Startup/storage failures terminate with an error; command errors
+have a code and message, and the panel displays them. Logs must never contain secrets.
+
+The local webview has only log-plugin permission. Custom app commands expose only
+the core functions; no shell, filesystem, network, or SQL plugin is installed.
+CSP restricts production content to the packaged application and Tauri IPC. Future
+integration permissions must be enforced natively, not solely by UI gating.
+Development CSP additionally allows the loopback Vite server, HMR WebSocket, and
+React's inline refresh preamble; those allowances are not used in release builds.
+
+Close and Hide keep the app in the tray. Left-click the tray icon or choose Show Slime
+to restore; Quit exits. A second launch restores the first instance. The single-instance
+plugin is registered before storage initialization to prevent competing processes.
+
+Window dimensions are logical units, the page uses CSS pixels, and Tauri/WebView2
+handle per-monitor DPI. No hard-coded physical-pixel multiplication is used. Scale
+changes are logged; ScreenService returns the live scale factor. Transparency applies
+to the webview and all page roots; only the rounded test panel paints a background.
+The transparent margin is not configured for mouse click-through.
+The Windows-only `noRedirectionBitmap` window option prevents an initial white flash;
+other-platform window configuration can replace this when its adapter is introduced.
+
+## Manual Windows checks
+
+1. Start with `npm run tauri dev`; confirm desktop content is visible around the panel.
+2. Drag using its header; toggle always-on-top and compare against another window.
+3. Hide, restore with the tray, close with Alt+F4, and restore again.
+4. Toggle always-on-top off, quit, and relaunch; verify it remains off.
+5. Launch the built executable twice; verify one process/window remains and restores.
+6. Move across monitors at 100%, 125%, 150%, and 200% scaling where available; verify
+   legible controls, stable logical size, dragging, and transparent edges.
+7. Quit from the tray; confirm the process exits. Check logs for startup/runtime errors.
+
+Reference: [Tauri configuration](https://v2.tauri.app/reference/config/),
+[tray](https://v2.tauri.app/learn/system-tray/),
+[single instance](https://v2.tauri.app/plugin/single-instance/),
+[logging](https://v2.tauri.app/plugin/logging/).

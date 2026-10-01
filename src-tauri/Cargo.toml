@@ -1,0 +1,25 @@
+[package]
+name = "slime-core"
+version = "0.1.0"
+description = "Desktop assistant"
+authors = ["nikh-iam"]
+edition = "2021"
+rust-version = "1.90"
+
+[lib]
+name = "slime_core"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-single-instance = "2"
+tauri-plugin-log = "2"
+log = "0.4"
+serde = { version = "1", features = ["derive"] }
+rusqlite = { version = "0.37", features = ["bundled"] }
+thiserror = "2"
+
+[dev-dependencies]
+tempfile = "3"

@@ -1,0 +1,18 @@
+:root { font-family: "Segoe UI", sans-serif; color: #edf1f8; background: transparent; font-synthesis: none; }
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; width: 100%; height: 100%; background: transparent; }
+body { padding: 20px; overflow: hidden; }
+.panel { height: 100%; padding: 18px; border: 1px solid #667184; border-radius: 18px; background: #202732ed; overflow: auto; }
+header { display: flex; align-items: center; gap: 8px; font-size: 12px; user-select: none; cursor: move; touch-action: none; padding-bottom: 12px; }
+.dot { width: 9px; height: 9px; background: #a8e8bc; border-radius: 50%; }
+.drag-hint { margin-left: auto; color: #b0bbc9; }
+h1 { font-size: 20px; margin: 8px 0; }
+p { font-size: 13px; line-height: 1.5; margin: 8px 0; }
+.status, .hint { color: #b8c5d7; }
+.hint { font-size: 11px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+button { font: inherit; font-size: 12px; color: inherit; background: #354153; border: 1px solid #778398; border-radius: 6px; padding: 7px 10px; cursor: pointer; }
+button:hover { background: #485972; }
+button:focus-visible { outline: 2px solid #a8e8bc; outline-offset: 2px; }
+button:disabled { opacity: .5; cursor: wait; }
+.error { color: #ffc5bd; overflow-wrap: anywhere; }

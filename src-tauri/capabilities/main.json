@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "Only the local window may write diagnostic logs.",
+  "windows": ["main"],
+  "permissions": ["log:allow-log"]
+}
