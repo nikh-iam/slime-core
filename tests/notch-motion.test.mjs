@@ -1,4 +1,4 @@
-﻿import test from 'node:test';
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
@@ -28,7 +28,7 @@ for (const from of Object.keys(motionTargets)) for (const to of Object.keys(moti
 }
 test('width leads height and content waits for physical space; collapse withdraws content first', () => {
   const c = at('COLLAPSED'); c.request('EXPANDED'); c.step(0.016);
-  assert.ok((c.geometry.width - 90) / 330 > (c.geometry.height - 48) / 112);
+  assert.ok((c.geometry.width - 90) / 330 > (c.geometry.height - 48) / 172);
   assert.equal(c.geometry.contentProgress, 0);
   settle(c); c.request('COLLAPSED'); const height = c.geometry.height; c.step(0.016);
   assert.equal(c.geometry.height, height); assert.ok(c.geometry.contentProgress < 1);
@@ -75,7 +75,7 @@ for (const interval of [16, 24, 32, 40]) test(`driver ${interval}ms: one IPC, ti
   const h = harness(interval); h.d.request({ state: 'EXPANDED', revision: 1 }, false);
   for (let i = 0; i < 250; i++) { await h.tick(); assert.ok(h.raf.size <= 1); assert.ok(h.pending.length <= 1); }
   assert.equal(h.raf.size, 0); assert.equal(h.d.metrics.active, false);
-  assert.deepEqual(h.d.metrics.acknowledged, { width: 420, height: 160 });
+  assert.deepEqual(h.d.metrics.acknowledged, { width: 420, height: 220 });
   h.d.request({ state: 'HIDDEN', revision: 2 }, false);
   for (let i = 0; i < 250; i++) await h.tick();
   assert.deepEqual(h.d.metrics.acknowledged, { width: 36, height: 1 }); assert.equal(h.raf.size, 0);

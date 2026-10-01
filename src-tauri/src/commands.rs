@@ -13,6 +13,32 @@ pub struct AppState {
     pub storage: Mutex<Storage>,
     pub notch: Mutex<NotchRuntime>,
 }
+#[tauri::command]
+pub async fn ai_initialize(model: State<'_, crate::ai::LocalModel>) -> Result<(), String> {
+    model.initialize().await
+}
+#[tauri::command]
+pub async fn ai_generate(
+    app: tauri::AppHandle,
+    model: State<'_, crate::ai::LocalModel>,
+    messages: Vec<crate::ai::Message>,
+    on_event: tauri::ipc::Channel<crate::ai::AIEvent>,
+) -> Result<String, String> {
+    dispatch_logged(&app, NotchAction::BeginGeneration, false);
+    let result = model.generate(messages, on_event).await;
+    if !model.busy() {
+        dispatch_logged(&app, NotchAction::EndGeneration, false);
+    }
+    result
+}
+#[tauri::command]
+pub fn ai_cancel(model: State<'_, crate::ai::LocalModel>) {
+    model.cancel();
+}
+#[tauri::command]
+pub fn ai_shutdown(model: State<'_, crate::ai::LocalModel>) {
+    model.unload();
+}
 #[derive(Serialize)]
 pub struct CoreStatus {
     platform: PlatformInfo,

@@ -4,6 +4,7 @@ use crate::{
     platform::{MonitorArea, PhysicalBounds, ScreenService, WindowService},
 };
 use serde::{Deserialize, Serialize};
+use std::time::{Duration, Instant};
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -42,7 +43,7 @@ impl NotchWindowController {
         if !width.is_finite()
             || !height.is_finite()
             || !(1.0..=540.0).contains(&width)
-            || !(1.0..=260.0).contains(&height)
+            || !(1.0..=420.0).contains(&height)
         {
             return Err(AppError::Configuration(
                 "Invalid notch motion envelope".into(),
@@ -77,6 +78,9 @@ pub struct NotchRuntime {
     controller: NotchController,
     window: NotchWindowController,
     ready: bool,
+    activity_at: Instant,
+    busy: bool,
+    auto_restore: Option<NotchState>,
 }
 impl NotchRuntime {
     pub fn new(config: NotchConfig) -> Self {
@@ -84,6 +88,9 @@ impl NotchRuntime {
             controller: NotchController::default(),
             window: NotchWindowController::new(config),
             ready: false,
+            activity_at: Instant::now(),
+            busy: false,
+            auto_restore: None,
         }
     }
     pub fn snapshot(&self) -> NotchSnapshot {
@@ -111,12 +118,52 @@ impl NotchRuntime {
         action: NotchAction,
         focus: bool,
     ) -> Result<NotchSnapshot> {
-        let next = self.controller.next(action);
+        let next = if matches!(action, NotchAction::Activity) {
+            self.auto_restore
+                .take()
+                .unwrap_or(self.controller.next(action))
+        } else {
+            self.controller.next(action)
+        };
+        self.activity_at = Instant::now();
+        if matches!(action, NotchAction::BeginGeneration) {
+            self.busy = true;
+        }
+        if matches!(action, NotchAction::EndGeneration) {
+            self.busy = false;
+        }
+        if !matches!(action, NotchAction::Activity) {
+            self.auto_restore = None;
+        }
         if self.ready && next != NotchState::Hidden {
             self.window.show(platform, focus)?;
         }
         self.controller.commit(next);
         Ok(self.snapshot())
+    }
+    pub fn tick<P: WindowService + ScreenService + ?Sized>(
+        &mut self,
+        platform: &P,
+        now: Instant,
+    ) -> Result<Option<NotchSnapshot>> {
+        if self.busy || !self.ready {
+            return Ok(None);
+        }
+        let state = self.snapshot().state;
+        let (delay, action) = match state {
+            NotchState::Compact | NotchState::Expanded => {
+                (self.window.config.active_idle_ms, NotchAction::Collapse)
+            }
+            NotchState::Collapsed => (self.window.config.character_idle_ms, NotchAction::Hide),
+            NotchState::Hidden => return Ok(None),
+        };
+        if now.saturating_duration_since(self.activity_at) < Duration::from_millis(delay) {
+            return Ok(None);
+        }
+        let snapshot = self.apply(platform, action, false)?;
+        self.activity_at = now;
+        self.auto_restore = Some(state);
+        Ok(Some(snapshot))
     }
     pub fn motion<P: WindowService + ScreenService + ?Sized>(
         &mut self,
@@ -130,6 +177,9 @@ impl NotchRuntime {
             });
         }
         let size = self.window.resize(platform, bounds.width, bounds.height)?;
+        if bounds.settled {
+            self.auto_restore = None;
+        }
         if bounds.settled && self.snapshot().state == NotchState::Hidden {
             platform.hide()?;
             self.window.visible = false;
@@ -243,7 +293,7 @@ mod tests {
             .apply(&host, NotchAction::ToggleAssistant, true)
             .unwrap();
         assert!(host.visible.get());
-        assert_eq!(window.snapshot().state, NotchState::Expanded);
+        assert_eq!(window.snapshot().state, NotchState::Compact);
     }
     #[test]
     fn failed_native_resize_does_not_modify_semantic_state() {
@@ -325,6 +375,7 @@ mod tests {
     fn hide_waits_for_matching_completion_and_show_prepares_small_host() {
         let host = Host::default();
         let mut runtime = NotchRuntime::new(NotchConfig::default());
+        runtime.apply(&host, NotchAction::Show, false).unwrap();
         runtime.ready(&host).unwrap();
         let old = runtime.snapshot().revision;
         runtime.apply(&host, NotchAction::Hide, false).unwrap();
@@ -394,5 +445,63 @@ mod tests {
                 )
                 .is_err());
         }
+    }
+    #[test]
+    fn idle_lifecycle_waits_for_generation_and_activity_reverses_contraction() {
+        let host = Host::default();
+        let mut runtime = NotchRuntime::new(NotchConfig {
+            active_idle_ms: 1000,
+            character_idle_ms: 500,
+            ..NotchConfig::default()
+        });
+        runtime.ready(&host).unwrap();
+        assert!(!host.visible.get());
+        runtime.apply(&host, NotchAction::Expand, true).unwrap();
+        let now = Instant::now();
+        runtime.activity_at = now;
+        assert!(runtime
+            .tick(&host, now + Duration::from_millis(999))
+            .unwrap()
+            .is_none());
+        runtime.busy = true;
+        assert!(runtime
+            .tick(&host, now + Duration::from_secs(20))
+            .unwrap()
+            .is_none());
+        runtime.busy = false;
+        runtime.tick(&host, now + Duration::from_secs(1)).unwrap();
+        assert_eq!(runtime.snapshot().state, NotchState::Collapsed);
+        runtime.apply(&host, NotchAction::Activity, false).unwrap();
+        assert_eq!(runtime.snapshot().state, NotchState::Expanded);
+        runtime.activity_at = now;
+        runtime.tick(&host, now + Duration::from_secs(1)).unwrap();
+        runtime
+            .motion(
+                &host,
+                MotionBounds {
+                    revision: runtime.snapshot().revision,
+                    width: 90.0,
+                    height: 48.0,
+                    settled: true,
+                },
+            )
+            .unwrap();
+        runtime
+            .tick(&host, now + Duration::from_millis(1500))
+            .unwrap();
+        assert_eq!(runtime.snapshot().state, NotchState::Hidden);
+        assert!(host.visible.get());
+        runtime
+            .motion(
+                &host,
+                MotionBounds {
+                    revision: runtime.snapshot().revision,
+                    width: 36.0,
+                    height: 1.0,
+                    settled: true,
+                },
+            )
+            .unwrap();
+        assert!(!host.visible.get());
     }
 }

@@ -29,6 +29,7 @@ export class NotchMotionDriver {
     this.wake();
   }
   interact(hover: boolean, pressed: boolean) { this.engine.interact(hover, pressed); this.wake(); }
+  layout(height: number) { this.engine.setChatHeight(height); if (this.revision >= 0) this.wake(); }
   private wake() {
     if (this.stopped || this.frame !== undefined) return;
     this.last = this.scheduler.now(); this.frame = this.scheduler.request(this.tick); this.metrics.active = true;

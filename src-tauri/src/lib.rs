@@ -1,3 +1,4 @@
+mod ai;
 mod commands;
 pub mod error;
 pub mod notch;
@@ -11,7 +12,7 @@ use std::sync::Mutex;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager,
+    Emitter, Manager,
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
@@ -34,8 +35,10 @@ pub fn run() {
         }).build())
         .invoke_handler(tauri::generate_handler![commands::core_status, commands::platform_info,
             commands::screen_scale_factor, commands::hide_window, commands::quit_application,
-            commands::notch_snapshot, commands::notch_action, commands::notch_ready, commands::notch_motion])
+            commands::notch_snapshot, commands::notch_action, commands::notch_ready, commands::notch_motion,
+            commands::ai_initialize, commands::ai_generate, commands::ai_cancel, commands::ai_shutdown])
         .setup(|app| {
+            app.manage(ai::LocalModel::default());
             let config = NotchConfig::from_environment()?;
             let platform = platform::NativePlatform::new(app.handle().clone());
             let storage = storage::Storage::open(&platform.app_data_dir()?)?;
@@ -62,6 +65,22 @@ pub fn run() {
                     if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. }) { restore(tray.app_handle()); }
                 }).build(app)?;
             log::info!("Notch host ready; SQLite initialized; TOGGLE_ASSISTANT={}", config.shortcut);
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                loop {
+                    tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+                    let app = handle.clone();
+                    if handle.run_on_main_thread(move || {
+                        let state = app.state::<AppState>();
+                        if let Ok(mut notch) = state.notch.lock() {
+                            match notch.tick(state.platform.as_ref(), std::time::Instant::now()) {
+                                Ok(Some(snapshot)) => { let _ = app.emit_to("notch", "notch-state", snapshot); },
+                                Err(error) => log::error!("Idle lifecycle: {error}"), _ => {}
+                            }
+                        };
+                    }).is_err() { break; }
+                }
+            });
             Ok(())
         })
         .on_window_event(|window, event| match event {
@@ -84,10 +103,17 @@ pub fn run() {
             }
             _ => {}
         })
-        .run(tauri::generate_context!());
-    if let Err(error) = result {
-        log::error!("Application startup failed: {error}");
-        eprintln!("Application startup failed: {error}");
-        std::process::exit(1);
+        .build(tauri::generate_context!());
+    match result {
+        Ok(app) => app.run(|handle, event| {
+            if matches!(event, tauri::RunEvent::Exit) {
+                handle.state::<ai::LocalModel>().shutdown();
+            }
+        }),
+        Err(error) => {
+            log::error!("Application startup failed: {error}");
+            eprintln!("Application startup failed: {error}");
+            std::process::exit(1);
+        }
     }
 }

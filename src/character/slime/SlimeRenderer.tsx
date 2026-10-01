@@ -6,6 +6,8 @@ import { SlimeController } from './SlimeController';
 import type { PoseRegistry } from './EmotionTransitionController';
 import type { SlimeAppearanceProps } from './SlimeAvatar';
 const poses = Object.fromEntries(Object.entries(slimeAssets).map(([name, svg]) => [name, normalizePose(svg)])) as PoseRegistry;
+const lifecycle = { mounts: 0, unmounts: 0, active: 0 };
+function attribute(element: Element, name: string, value: string) { if (element.getAttribute(name) !== value) element.setAttribute(name, value); }
 export function SlimeRenderer({ state, size = 48, color = '#f5f5f5', eyeColor = '#000000', animated = true, reducedMotion, alt = `Slime: ${state.emotion}`, className = '' }: SlimeAppearanceProps & { state: CharacterState }) {
   const id = useId();
   const root = useRef<SVGSVGElement>(null);
@@ -14,6 +16,7 @@ export function SlimeRenderer({ state, size = 48, color = '#f5f5f5', eyeColor = 
   useEffect(() => { latest.current = { state, animated, reducedMotion }; });
   useEffect(() => {
     const svg = root.current!;
+    if (import.meta.env.DEV) { lifecycle.mounts++; lifecycle.active++; Object.assign(window, { __slimeLifecycle: lifecycle }); }
     const body = svg.querySelector<SVGPathElement>('[data-body]')!;
     const silhouette = svg.querySelector<SVGPathElement>('[data-silhouette]')!;
     const eyes = [...svg.querySelectorAll<SVGPathElement>('[data-eye]')];
@@ -23,11 +26,11 @@ export function SlimeRenderer({ state, size = 48, color = '#f5f5f5', eyeColor = 
     let idleKey = '';
     const media = matchMedia('(prefers-reduced-motion: reduce)');
     const engine = new SlimeController(poses, latest.current.state, { now: () => performance.now(), request: (callback) => window.requestAnimationFrame(callback), cancel: (id) => window.cancelAnimationFrame(id) }, (frame) => {
-      body.setAttribute('d', pathString(frame.pose.body));
-      silhouette.setAttribute('d', pathString(frame.pose.body));
-      surface.setAttribute('transform', `scale(${frame.scale})`);
-      gaze.setAttribute('transform', `translate(${frame.gaze.join(' ')})`);
-      eyes.forEach((eye, i) => { eye.setAttribute('d', pathString(frame.pose.eyes[i])); eye.style.transform = `matrix(${frame.pose.matrices[i].join(',')})`; });
+      attribute(body, 'd', pathString(frame.pose.body));
+      attribute(silhouette, 'd', pathString(frame.pose.body));
+      attribute(surface, 'transform', `scale(${frame.scale})`);
+      attribute(gaze, 'transform', `translate(${frame.gaze.join(' ')})`);
+      eyes.forEach((eye, i) => { attribute(eye, 'd', pathString(frame.pose.eyes[i])); if (!frame.idle) eye.style.transform = `matrix(${frame.pose.matrices[i].join(',')})`; });
       const key = frame.idle ? `${engine.emotions.currentEmotion}:${frame.epoch}` : '';
       if (key !== idleKey) {
         animations.forEach((animation) => animation.cancel()); animations = []; idleKey = key;
@@ -44,7 +47,7 @@ export function SlimeRenderer({ state, size = 48, color = '#f5f5f5', eyeColor = 
     controller.current = engine;
     const update = () => engine.update(latest.current.state, latest.current.reducedMotion ?? media.matches, latest.current.animated);
     update(); media.addEventListener('change', update);
-    return () => { engine.dispose(); animations.forEach((a) => a.cancel()); media.removeEventListener('change', update); controller.current = null; };
+    return () => { engine.dispose(); animations.forEach((a) => a.cancel()); media.removeEventListener('change', update); controller.current = null; if (import.meta.env.DEV) { lifecycle.unmounts++; lifecycle.active--; } };
   }, []);
   useEffect(() => { controller.current?.update(state, reducedMotion ?? matchMedia('(prefers-reduced-motion: reduce)').matches, animated); }, [state, animated, reducedMotion]);
   const pixels = Number.isFinite(size) && size > 0 ? size : 48;

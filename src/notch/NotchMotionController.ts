@@ -9,8 +9,8 @@ export interface MotionFrame extends Geometry {
 }
 export const motionTargets: Record<NotchState, Geometry> = {
   COLLAPSED: { width: 90, height: 48, anchorX: 0, offsetY: 0, radius: 24, contentProgress: 0, characterScale: 1, characterX: 0, characterY: 24 },
-  COMPACT: { width: 220, height: 56, anchorX: 0, offsetY: 0, radius: 28, contentProgress: 0.45, characterScale: 1, characterX: -72, characterY: 28 },
-  EXPANDED: { width: 420, height: 160, anchorX: 0, offsetY: 0, radius: 30, contentProgress: 1, characterScale: 0.94, characterX: -176, characterY: 30 },
+  COMPACT: { width: 360, height: 56, anchorX: 0, offsetY: 0, radius: 28, contentProgress: 1, characterScale: 1, characterX: -148, characterY: 28 },
+  EXPANDED: { width: 420, height: 220, anchorX: 0, offsetY: 0, radius: 30, contentProgress: 1, characterScale: 0.94, characterX: -176, characterY: 30 },
   HIDDEN: { width: 36, height: 0, anchorX: 0, offsetY: -8, radius: 18, contentProgress: 0, characterScale: 0.75, characterX: 0, characterY: 10 },
 };
 const keys = Object.keys(motionTargets.COLLAPSED) as (keyof Geometry)[];
@@ -27,6 +27,8 @@ export class NotchMotionController {
   velocity = zero();
   settled = true;
   reduced = false;
+  private chatHeight = 220;
+  setChatHeight(height: number) { const value = clamp(height, 220, 360); if (value !== this.chatHeight) { this.chatHeight = value; if (this.state === 'EXPANDED') this.settled = false; } }
   private hover = false;
   private pressed = false;
   private settledReported = true;
@@ -53,6 +55,7 @@ export class NotchMotionController {
   }
   target(): Geometry {
     const target = { ...motionTargets[this.state] };
+    if (this.state === 'EXPANDED') target.height = this.chatHeight;
     if (!this.reduced && this.state === 'COLLAPSED') {
       target.width += this.hover ? 2 : 0;
       target.height += this.hover ? 0.5 : 0;
@@ -78,7 +81,7 @@ export class NotchMotionController {
     if (!this.reduced && expanding && this.state === 'EXPANDED') {
       // Widen first, then let the lower edge deepen; no queued animation segments.
       const space = clamp((this.geometry.width - 100) / 180, 0, 1);
-      target.height = Math.min(target.height, 56 + 104 * space);
+      target.height = Math.min(target.height, 56 + (this.chatHeight - 56) * space);
     }
     const enoughSpace = clamp((this.geometry.height - 48) / 95, 0, 1) * clamp((this.geometry.width - 100) / 260, 0, 1);
     if (this.state === 'EXPANDED') target.contentProgress *= enoughSpace;

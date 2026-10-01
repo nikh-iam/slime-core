@@ -6,6 +6,8 @@ use std::path::PathBuf;
 mod windows;
 #[cfg(target_os = "windows")]
 pub use windows::WindowsPlatform as NativePlatform;
+#[cfg(target_os = "windows")]
+pub mod model_process;
 
 #[cfg(not(target_os = "windows"))]
 compile_error!(

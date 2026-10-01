@@ -4,7 +4,7 @@ import { reportError } from '../shared/logging';
 
 // A projection of native state, never a second transition policy.
 export function useNotch(service: NotchService) {
-  const [snapshot, setSnapshot] = useState<NotchSnapshot>({ state: 'COLLAPSED', revision: -1 });
+  const [snapshot, setSnapshot] = useState<NotchSnapshot>({ state: 'HIDDEN', revision: -1 });
   const [ready, setReady] = useState(false);
   useEffect(() => {
     let active = true;

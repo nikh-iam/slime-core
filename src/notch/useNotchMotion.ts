@@ -11,14 +11,16 @@ export function paintNotch(element: HTMLElement, frame: MotionFrame) {
   element.style.visibility = frame.height < 0.1 ? 'hidden' : 'visible';
   element.dataset.settled = String(frame.settled);
   const character = element.querySelector<HTMLElement>('.notch-character');
-  if (character) character.style.transform = `translate(${frame.characterX - 22}px, ${frame.characterY - 22}px) scale(${frame.characterScale * frame.stretchX}, ${frame.characterScale * frame.stretchY})`;
+  if (character) character.style.transform = `translate3d(${frame.characterX - 22}px, ${frame.characterY - 22}px, 0) scale(${frame.characterScale})`;
+  const deformation = element.querySelector<HTMLElement>('.notch-character-deformation');
+  if (deformation) deformation.style.transform = `scale(${frame.stretchX}, ${frame.stretchY})`;
   const content = element.querySelector<HTMLElement>('.notch-content');
   if (content) {
     content.style.clipPath = `inset(0 0 ${(1 - frame.contentProgress) * 100}% 0)`;
     content.inert = frame.contentProgress < 0.98;
   }
 }
-export function useNotchMotion(surface: RefObject<HTMLDivElement | null>, service: NotchService, snapshot: NotchSnapshot, ready: boolean) {
+export function useNotchMotion(surface: RefObject<HTMLDivElement | null>, service: NotchService, snapshot: NotchSnapshot, ready: boolean, chatHeight = 220) {
   const driver = useRef<NotchMotionDriver | null>(null);
   const latest = useRef({ snapshot, ready });
   useEffect(() => { latest.current = { snapshot, ready }; });
@@ -45,6 +47,7 @@ export function useNotchMotion(surface: RefObject<HTMLDivElement | null>, servic
     return () => { motion.dispose(); media.removeEventListener('change', update); driver.current = null; if (diagnostics) Reflect.deleteProperty(window, '__notchDiagnostics'); };
   }, [service, surface]);
   useEffect(() => { if (ready) driver.current?.request(snapshot, matchMedia('(prefers-reduced-motion: reduce)').matches); }, [snapshot, ready]);
+  useEffect(() => { driver.current?.layout(chatHeight); }, [chatHeight]);
   return (hover: boolean, pressed: boolean) => driver.current?.interact(hover, pressed);
 }
 
