@@ -7,6 +7,7 @@ export default tseslint.config(
   { ignores: ['dist/**', 'node_modules/**', 'src-tauri/**', '.tools/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  { files: ['tests/**/*.mjs'], languageOptions: { globals: globals.node } },
   {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: { globals: globals.browser },
@@ -14,7 +15,7 @@ export default tseslint.config(
     rules: hooks.configs.recommended.rules,
   },
   {
-    files: ['src/{ui,character,assistant,ai,tools,integrations}/**/*.{ts,tsx}'],
+    files: ['src/{ui,notch,character,assistant,ai,tools,integrations}/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{

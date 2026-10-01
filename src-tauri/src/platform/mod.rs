@@ -24,6 +24,22 @@ pub trait WindowService {
     fn hide(&self) -> Result<()>;
     fn start_dragging(&self) -> Result<()>;
     fn set_always_on_top(&self, enabled: bool) -> Result<()>;
+    fn set_bounds(&self, bounds: PhysicalBounds) -> Result<()>;
+    fn show_overlay(&self, focus: bool) -> Result<()>;
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PhysicalBounds {
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+}
+pub struct MonitorArea {
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+    pub scale_factor: f64,
 }
 // Phase 0 only needs the app-owned data directory, never arbitrary file automation.
 pub trait FileSystemService {
@@ -35,6 +51,7 @@ pub trait ClipboardService {
 }
 pub trait ScreenService {
     fn scale_factor(&self) -> Result<f64>;
+    fn monitor_area(&self, name: Option<&str>) -> Result<MonitorArea>;
 }
 pub trait ApplicationService {
     fn quit(&self);

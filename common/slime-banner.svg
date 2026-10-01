@@ -8,12 +8,12 @@
 >
   <title id="title">Slime</title>
   <desc id="desc">
-    Minimal Slime brand banner with animated Bloub character — beta v0.0
+    Minimal Slime brand banner with animated Slime character — beta v0.1
   </desc>
 
   <defs>
     <path
-      id="bloub-shape"
+      id="slime-shape"
       d="
         M100.19 0.33
         C100.19 3.6 100.03 6.88 99.71 10.13
@@ -84,14 +84,14 @@
     />
 
     <mask
-      id="bloub-face-mask"
+      id="slime-face-mask"
       maskUnits="userSpaceOnUse"
       x="-125"
       y="-125"
       width="250"
       height="250"
     >
-      <use href="#bloub-shape" fill="#ffffff" />
+      <use href="#slime-shape" fill="#ffffff" />
 
       <rect
         class="eye-hole"
@@ -126,21 +126,21 @@
   </defs>
 
   <style><![CDATA[
-    .bloub-character {
+    .slime-character {
       transform-box: fill-box;
       transform-origin: center;
       animation:
         characterReveal .9s cubic-bezier(.22,.8,.25,1) both,
-        bloubFloat 5.2s 1s ease-in-out infinite;
+        slimeFloat 5.2s 1s ease-in-out infinite;
     }
 
-    .bloub-body {
+    .slime-body {
       transform-box: fill-box;
       transform-origin: center;
-      animation: bloubBreathe 4.8s ease-in-out infinite;
+      animation: slimeBreathe 4.8s ease-in-out infinite;
     }
 
-    .bloub-shadow {
+    .slime-shadow {
       transform-box: fill-box;
       transform-origin: center;
       animation: shadowBreathe 4.8s ease-in-out infinite;
@@ -175,12 +175,12 @@
       to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    @keyframes bloubFloat {
+    @keyframes slimeFloat {
       0%, 100% { transform: translateY(0); }
       50%      { transform: translateY(-4px); }
     }
 
-    @keyframes bloubBreathe {
+    @keyframes slimeBreathe {
       0%, 100% { transform: scale(1); }
       50%      { transform: scale(1.016, .984); }
     }
@@ -214,16 +214,16 @@
 
     @media (prefers-reduced-motion: reduce) {
       * { animation: none !important; }
-      .brand, .beta, .bloub-character { opacity: 1; }
+      .brand, .beta, .slime-character { opacity: 1; }
     }
   ]]></style>
 
-  <!-- BLOUB CHARACTER
+  <!-- SLIME CHARACTER
        Outer <g> = position, inner <g> = animation. -->
   <g transform="translate(467 160)">
-    <g class="bloub-character">
+    <g class="slime-character">
       <ellipse
-        class="bloub-shadow"
+        class="slime-shadow"
         cx="0"
         cy="96"
         rx="47"
@@ -234,8 +234,8 @@
       />
 
       <g transform="scale(.82)">
-        <g class="bloub-body">
-          <use href="#bloub-shape" fill="#F9F9F9" />
+        <g class="slime-body">
+          <use href="#slime-shape" fill="#F9F9F9" />
 
           <rect
             x="-125"
@@ -243,7 +243,7 @@
             width="250"
             height="250"
             fill="#0A0A0C"
-            mask="url(#bloub-face-mask)"
+            mask="url(#slime-face-mask)"
           />
         </g>
       </g>
@@ -285,7 +285,7 @@
         font-weight="500"
         letter-spacing="1.5"
         fill="#777777"
-      >BETA V0.0 - CORE.SLIME</text>
+      >BETA v0.1 - CORE.SLIME</text>
     </g>
   </g>
 </svg>

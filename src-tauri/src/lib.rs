@@ -1,94 +1,86 @@
 mod commands;
 pub mod error;
+pub mod notch;
 pub mod platform;
 mod storage;
 
-use commands::AppState;
-use platform::{FileSystemService, WindowService};
+use commands::{dispatch_logged, AppState};
+use notch::{NotchAction, NotchConfig, NotchWindowController};
+use platform::FileSystemService;
 use std::sync::Mutex;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     Manager,
 };
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 fn restore(app: &tauri::AppHandle) {
-    if let Some(state) = app.try_state::<AppState>() {
-        if let Err(error) = state.platform.show() {
-            log::error!("Restore failed: {error}");
-        }
+    if app.try_state::<AppState>().is_some() {
+        dispatch_logged(app, NotchAction::Show, true);
     }
 }
-
 pub fn run() {
     let result = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _, _| restore(app)))
-        .plugin(
-            tauri_plugin_log::Builder::new()
-                .level(log::LevelFilter::Info)
-                .max_file_size(2_000_000)
-                .build(),
-        )
-        .invoke_handler(tauri::generate_handler![
-            commands::core_status,
-            commands::platform_info,
-            commands::screen_scale_factor,
-            commands::start_dragging,
-            commands::hide_window,
-            commands::quit_application,
-            commands::set_always_on_top
-        ])
+        .plugin(tauri_plugin_log::Builder::new().level(log::LevelFilter::Info).max_file_size(2_000_000).build())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().with_handler(|app, _, event| {
+            if event.state == ShortcutState::Pressed {
+                let handle = app.clone();
+                if let Err(error) = app.run_on_main_thread(move || dispatch_logged(&handle, NotchAction::ToggleAssistant, true)) {
+                    log::error!("Shortcut dispatch failed: {error}");
+                }
+            }
+        }).build())
+        .invoke_handler(tauri::generate_handler![commands::core_status, commands::platform_info,
+            commands::screen_scale_factor, commands::hide_window, commands::quit_application,
+            commands::notch_snapshot, commands::notch_action, commands::notch_ready])
         .setup(|app| {
+            let config = NotchConfig::from_environment()?;
             let platform = platform::NativePlatform::new(app.handle().clone());
             let storage = storage::Storage::open(&platform.app_data_dir()?)?;
-            platform.set_always_on_top(storage.settings()?.always_on_top)?;
-            app.manage(AppState {
-                platform: Box::new(platform),
-                storage: Mutex::new(storage),
-            });
+            app.manage(AppState { platform: Box::new(platform), storage: Mutex::new(storage), notch: Mutex::new(NotchWindowController::new(config.clone())) });
+            match config.shortcut.parse::<Shortcut>() {
+                Ok(shortcut) => if let Err(error) = app.global_shortcut().register(shortcut) {
+                    log::error!("Cannot register TOGGLE_ASSISTANT ({}): {error}. Tray remains available.", config.shortcut);
+                },
+                Err(error) => log::error!("Invalid TOGGLE_ASSISTANT shortcut: {error}. Tray remains available."),
+            }
             let show = MenuItem::with_id(app, "show", "Show Slime", true, None::<&str>)?;
+            let hide = MenuItem::with_id(app, "hide", "Hide Slime", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show, &quit])?;
-            let icon = app
-                .default_window_icon()
-                .ok_or("Application icon missing")?
-                .clone();
-            TrayIconBuilder::new()
-                .icon(icon)
-                .tooltip("Slime Core")
-                .menu(&menu)
-                .show_menu_on_left_click(false)
+            let menu = Menu::with_items(app, &[&show, &hide, &quit])?;
+            let icon = app.default_window_icon().ok_or("Application icon missing")?.clone();
+            TrayIconBuilder::new().icon(icon).tooltip("Slime Core").menu(&menu).show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => restore(app),
+                    "hide" => dispatch_logged(app, NotchAction::Hide, false),
                     "quit" => app.state::<AppState>().platform.quit(),
                     _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
-                    if matches!(
-                        event,
-                        TrayIconEvent::Click {
-                            button: MouseButton::Left,
-                            button_state: MouseButtonState::Up,
-                            ..
-                        }
-                    ) {
-                        restore(tray.app_handle());
-                    }
-                })
-                .build(app)?;
-            app.state::<AppState>().platform.show()?;
-            log::info!("Core ready; SQLite initialized");
+                    if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. }) { restore(tray.app_handle()); }
+                }).build(app)?;
+            log::info!("Notch host ready; SQLite initialized; TOGGLE_ASSISTANT={}", config.shortcut);
             Ok(())
         })
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::CloseRequested { api, .. } => {
                 api.prevent_close();
-                if let Err(error) = window.app_handle().state::<AppState>().platform.hide() {
-                    log::error!("Hide failed: {error}");
-                }
+                dispatch_logged(window.app_handle(), NotchAction::Hide, false);
             }
             tauri::WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                log::info!("Window DPI scale changed: {scale_factor}");
+                log::info!("Notch DPI scale changed: {scale_factor}");
+                let app = window.app_handle().clone();
+                let handle = app.clone();
+                if let Err(error) = app.run_on_main_thread(move || {
+                    if let Some(state) = handle.try_state::<AppState>() {
+                        match state.notch.try_lock() {
+                            Ok(mut notch) => if let Err(error) = notch.reposition(state.platform.as_ref()) { log::error!("Notch placement failed: {error}"); },
+                            Err(_) => log::debug!("DPI change handled by active notch layout transaction"),
+                        }
+                    }
+                }) { log::error!("DPI dispatch failed: {error}"); }
             }
             _ => {}
         })

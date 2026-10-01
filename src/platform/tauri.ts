@@ -1,6 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import type { DesktopServices } from './contracts';
-import type { CoreStatus, PlatformInfo, Settings } from '../shared/types';
+import type { CoreStatus, PlatformInfo } from '../shared/types';
+import type { NotchSnapshot } from '../notch/types';
 
 // Transport only. OS selection and native implementations live in Rust.
 function unavailable(service: string): Promise<never> {
@@ -8,10 +10,26 @@ function unavailable(service: string): Promise<never> {
 }
 
 export const desktop: DesktopServices = {
+  notch: {
+    snapshot: () => invoke<NotchSnapshot>('notch_snapshot'),
+    ready: () => invoke<NotchSnapshot>('notch_ready'),
+    dispatch: (action) => invoke<NotchSnapshot>('notch_action', { action }),
+    subscribe: async (listener) => {
+      const unlisten = await listen<NotchSnapshot>('notch-state', (event) => listener(event.payload), { target: { kind: 'WebviewWindow', label: 'notch' } });
+      let stopped = false;
+      const stop = () => {
+        if (stopped) return;
+        stopped = true;
+        unlisten();
+        window.removeEventListener('beforeunload', stop);
+      };
+      // A page reload does not destroy the native webview. Release its native listener explicitly.
+      window.addEventListener('beforeunload', stop, { once: true });
+      return stop;
+    },
+  },
   window: {
-    startDragging: () => invoke('start_dragging'),
     hide: () => invoke('hide_window'),
-    setAlwaysOnTop: (enabled) => invoke<Settings>('set_always_on_top', { enabled }),
   },
   application: { quit: () => invoke('quit_application') },
   screen: { scaleFactor: () => invoke<number>('screen_scale_factor') },

@@ -12,6 +12,8 @@ pub enum AppError {
     Unavailable(&'static str),
     #[error("Internal state is unavailable")]
     State,
+    #[error("Configuration error: {0}")]
+    Configuration(String),
     #[error("Database schema {0} is newer than this application supports")]
     Schema(i64),
 }
@@ -30,6 +32,7 @@ impl From<AppError> for CommandError {
             AppError::Storage(_) | AppError::Io(_) | AppError::Schema(_) => "storage",
             AppError::Window(_) => "window",
             AppError::State => "state",
+            AppError::Configuration(_) => "configuration",
         };
         Self {
             code,

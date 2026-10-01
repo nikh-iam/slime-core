@@ -1,9 +1,8 @@
-import type { CoreStatus, PlatformInfo, Settings } from '../shared/types';
+import type { CoreStatus, PlatformInfo } from '../shared/types';
+import type { NotchService } from '../notch/types';
 
 export interface WindowService {
-  startDragging(): Promise<void>;
   hide(): Promise<void>;
-  setAlwaysOnTop(enabled: boolean): Promise<Settings>;
 }
 export interface FileSystemService { readText(path: string): Promise<string> }
 export interface ClipboardService { readText(): Promise<string>; writeText(text: string): Promise<void> }
@@ -14,6 +13,7 @@ export interface SecureStorageService { get(key: string): Promise<string | null>
 export interface PlatformService { info(): Promise<PlatformInfo> }
 export interface SettingsService { load(): Promise<CoreStatus> }
 export interface DesktopServices {
+  notch: NotchService;
   window: WindowService;
   fileSystem: FileSystemService;
   clipboard: ClipboardService;

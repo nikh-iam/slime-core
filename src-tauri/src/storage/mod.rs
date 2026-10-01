@@ -48,6 +48,7 @@ impl Storage {
             },
         )?)
     }
+    #[cfg(test)]
     pub fn set_always_on_top(&self, enabled: bool) -> Result<Settings> {
         self.connection.execute(
             "UPDATE settings SET always_on_top = ?1 WHERE id = 1",
