@@ -1,0 +1,291 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1200"
+  height="320"
+  viewBox="0 0 1200 320"
+  role="img"
+  aria-labelledby="title desc"
+>
+  <title id="title">Slime</title>
+  <desc id="desc">
+    Minimal Slime brand banner with animated Bloub character — beta v0.0
+  </desc>
+
+  <defs>
+    <path
+      id="bloub-shape"
+      d="
+        M100.19 0.33
+        C100.19 3.6 100.03 6.88 99.71 10.13
+        C99.39 13.38 98.9 16.63 98.27 19.84
+        C97.63 23.04 96.83 26.23 95.88 29.36
+        C94.93 32.48 93.83 35.58 92.58 38.6
+        C91.33 41.62 89.92 44.59 88.38 47.47
+        C86.84 50.35 85.15 53.17 83.33 55.89
+        C81.52 58.6 79.56 61.24 77.49 63.77
+        C75.42 66.29 73.21 68.73 70.9 71.04
+        C68.59 73.35 66.15 75.56 63.63 77.63
+        C61.1 79.7 58.46 81.66 55.74 83.48
+        C53.03 85.29 50.21 86.98 47.33 88.52
+        C44.45 90.06 41.47 91.47 38.46 92.72
+        C35.44 93.97 32.34 95.07 29.22 96.02
+        C26.09 96.97 22.9 97.77 19.7 98.41
+        C16.49 99.04 13.24 99.53 9.99 99.85
+        C6.74 100.17 3.45 100.33 0.19 100.33
+        C-3.08 100.33 -6.36 100.17 -9.61 99.85
+        C-12.87 99.53 -16.12 99.04 -19.32 98.41
+        C-22.53 97.77 -25.71 96.97 -28.84 96.02
+        C-31.97 95.07 -35.06 93.97 -38.08 92.72
+        C-41.1 91.47 -44.07 90.06 -46.95 88.52
+        C-49.83 86.98 -52.65 85.29 -55.37 83.48
+        C-58.09 81.66 -60.73 79.7 -63.25 77.63
+        C-65.78 75.56 -68.21 73.35 -70.52 71.04
+        C-72.83 68.73 -75.04 66.29 -77.11 63.77
+        C-79.19 61.24 -81.14 58.6 -82.96 55.89
+        C-84.77 53.17 -86.46 50.35 -88 47.47
+        C-89.54 44.59 -90.95 41.62 -92.2 38.6
+        C-93.45 35.58 -94.56 32.48 -95.51 29.36
+        C-96.46 26.23 -97.25 23.04 -97.89 19.84
+        C-98.53 16.63 -99.01 13.38 -99.33 10.13
+        C-99.65 6.88 -99.81 3.6 -99.81 0.33
+        C-99.81 -2.94 -99.65 -6.22 -99.33 -9.47
+        C-99.01 -12.72 -98.53 -15.98 -97.89 -19.18
+        C-97.25 -22.38 -96.46 -25.57 -95.51 -28.7
+        C-94.56 -31.83 -93.45 -34.92 -92.2 -37.94
+        C-90.95 -40.96 -89.54 -43.93 -88 -46.81
+        C-86.46 -49.69 -84.77 -52.51 -82.96 -55.23
+        C-81.14 -57.94 -79.19 -60.58 -77.11 -63.11
+        C-75.04 -65.64 -72.83 -68.07 -70.52 -70.38
+        C-68.21 -72.69 -65.78 -74.9 -63.25 -76.97
+        C-60.73 -79.04 -58.09 -81 -55.37 -82.82
+        C-52.65 -84.63 -49.83 -86.32 -46.95 -87.86
+        C-44.07 -89.4 -41.1 -90.81 -38.08 -92.06
+        C-35.06 -93.31 -31.97 -94.42 -28.84 -95.37
+        C-25.71 -96.31 -22.53 -97.11 -19.32 -97.75
+        C-16.12 -98.39 -12.87 -98.87 -9.61 -99.19
+        C-6.36 -99.51 -3.08 -99.67 0.19 -99.67
+        C3.45 -99.67 6.74 -99.51 9.99 -99.19
+        C13.24 -98.87 16.49 -98.39 19.7 -97.75
+        C22.9 -97.11 26.09 -96.31 29.22 -95.37
+        C32.34 -94.42 35.44 -93.31 38.46 -92.06
+        C41.47 -90.81 44.45 -89.4 47.33 -87.86
+        C50.21 -86.32 53.03 -84.63 55.74 -82.82
+        C58.46 -81 61.1 -79.04 63.63 -76.97
+        C66.15 -74.9 68.59 -72.69 70.9 -70.38
+        C73.21 -68.07 75.42 -65.64 77.49 -63.11
+        C79.56 -60.58 81.52 -57.94 83.33 -55.23
+        C85.15 -52.51 86.84 -49.69 88.38 -46.81
+        C89.92 -43.93 91.33 -40.96 92.58 -37.94
+        C93.83 -34.92 94.93 -31.83 95.88 -28.7
+        C96.83 -25.57 97.63 -22.38 98.27 -19.18
+        C98.9 -15.98 99.39 -12.72 99.71 -9.47
+        C100.03 -6.22 100.19 -2.94 100.19 0.33Z
+      "
+    />
+
+    <mask
+      id="bloub-face-mask"
+      maskUnits="userSpaceOnUse"
+      x="-125"
+      y="-125"
+      width="250"
+      height="250"
+    >
+      <use href="#bloub-shape" fill="#ffffff" />
+
+      <rect
+        class="eye-hole"
+        x="-45"
+        y="-22"
+        width="31"
+        height="51"
+        rx="15.5"
+        fill="#000000"
+      />
+
+      <rect
+        class="eye-hole"
+        x="18"
+        y="-22"
+        width="31"
+        height="51"
+        rx="15.5"
+        fill="#000000"
+      />
+    </mask>
+
+    <filter
+      id="character-shadow"
+      x="-100%"
+      y="-100%"
+      width="300%"
+      height="300%"
+    >
+      <feGaussianBlur stdDeviation="7" />
+    </filter>
+  </defs>
+
+  <style><![CDATA[
+    .bloub-character {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation:
+        characterReveal .9s cubic-bezier(.22,.8,.25,1) both,
+        bloubFloat 5.2s 1s ease-in-out infinite;
+    }
+
+    .bloub-body {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: bloubBreathe 4.8s ease-in-out infinite;
+    }
+
+    .bloub-shadow {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: shadowBreathe 4.8s ease-in-out infinite;
+    }
+
+    .eye-hole {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation:
+        eyeLook 5.6s ease-in-out infinite,
+        eyeBlink 5.2s 1.2s ease-in-out infinite;
+    }
+
+    .brand {
+      opacity: 0;
+      animation: reveal .9s .25s cubic-bezier(.22,.8,.25,1) forwards;
+    }
+
+    .beta {
+      opacity: 0;
+      animation: reveal .8s .5s cubic-bezier(.22,.8,.25,1) forwards;
+    }
+
+    .i-dot {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: dotPulse 3.2s 1.2s ease-in-out infinite;
+    }
+
+    @keyframes characterReveal {
+      from { opacity: 0; transform: translateY(10px) scale(.94); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes bloubFloat {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-4px); }
+    }
+
+    @keyframes bloubBreathe {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.016, .984); }
+    }
+
+    @keyframes shadowBreathe {
+      0%, 100% { opacity: .11; transform: scaleX(1); }
+      50%      { opacity: .065; transform: scaleX(.88); }
+    }
+
+    @keyframes eyeLook {
+      0%, 18%   { transform: translate(0, 0); }
+      28%, 42%  { transform: translate(-3px, 1px); }
+      52%, 67%  { transform: translate(3px, -1px); }
+      78%, 100% { transform: translate(0, 0); }
+    }
+
+    @keyframes eyeBlink {
+      0%, 44%, 48%, 100% { scale: 1 1; }
+      46%                { scale: 1 .08; }
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes dotPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(.78); opacity: .72; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+      .brand, .beta, .bloub-character { opacity: 1; }
+    }
+  ]]></style>
+
+  <!-- BLOUB CHARACTER
+       Outer <g> = position, inner <g> = animation. -->
+  <g transform="translate(467 160)">
+    <g class="bloub-character">
+      <ellipse
+        class="bloub-shadow"
+        cx="0"
+        cy="96"
+        rx="47"
+        ry="7"
+        fill="#000000"
+        opacity=".11"
+        filter="url(#character-shadow)"
+      />
+
+      <g transform="scale(.82)">
+        <g class="bloub-body">
+          <use href="#bloub-shape" fill="#F9F9F9" />
+
+          <rect
+            x="-125"
+            y="-125"
+            width="250"
+            height="250"
+            fill="#0A0A0C"
+            mask="url(#bloub-face-mask)"
+          />
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- WORDMARK -->
+  <g
+    class="brand"
+    font-family="Inter, SF Pro Display, Segoe UI, Helvetica Neue, Arial, sans-serif"
+    font-size="92"
+    font-weight="700"
+    letter-spacing="-5"
+    fill="#111111"
+  >
+    <text x="647" y="176" text-anchor="end">Sl</text>
+
+    <!-- i stem (matches x-height of "me") -->
+    <rect x="655" y="130" width="12" height="46" rx="2" />
+
+    <!-- Orange i dot: diameter = stem width, 10px gap above stem -->
+    <circle class="i-dot" cx="661" cy="118" r="6" fill="#F58A1F" />
+
+    <text x="669" y="176">me</text>
+  </g>
+
+  <!-- BETA LABEL (dot's left edge aligned with the S) -->
+  <g transform="translate(590 195)">
+    <g
+      class="beta"
+      font-family="Inter, SF Pro Display, Segoe UI, Helvetica Neue, Arial, sans-serif"
+    >
+      <circle cx="3.5" cy="5" r="3.5" fill="#F58A1F" />
+
+      <text
+        x="17"
+        y="10"
+        font-size="14"
+        font-weight="500"
+        letter-spacing="1.5"
+        fill="#777777"
+      >BETA V0.0 - CORE.SLIME</text>
+    </g>
+  </g>
+</svg>

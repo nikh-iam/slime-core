@@ -1,9 +1,18 @@
-# Slime desktop core
+<div align="center">
 
-Phase 0: Tauri 2, React + TypeScript, and Rust. Windows is the only enabled target.
-The temporary panel checks transparency, dragging, always-on-top settings, and tray lifecycle.
-There is no AI, screen capture/analysis, file automation, or external integration.
-Existing artwork in `common/` is preserved and not used as a final design.
+<img src="./common/slime-banner.svg" alt="Slime: early development, beta v0.0" width="100%" />
+
+[Get started](#development-windows) · [Architecture](#architecture) · [Manual checks](#manual-checks) · [License](#license)
+
+</div>
+<br/>
+
+Slime is an open-source, voice-first desktop assistant. Instead of cluttering your screen with massive text windows, it sits disguised inside your desktop notch, stretching, bouncing, and reacting with fluid animations while it runs system automations and captures your spoken thoughts.
+
+> **Phase Zero:** Tauri 2, React + TypeScript, and Rust. Windows is the only enabled target.
+> The temporary panel checks transparency, dragging, always-on-top settings, and tray lifecycle.
+> There is no AI, screen capture/analysis, file automation, or external integration.
+> Existing artwork in `common/` is preserved and not used as a final design.
 
 ## Development (Windows)
 
@@ -96,7 +105,7 @@ The transparent margin is not configured for mouse click-through.
 The Windows-only `noRedirectionBitmap` window option prevents an initial white flash;
 other-platform window configuration can replace this when its adapter is introduced.
 
-## Manual Windows checks
+## Manual checks
 
 1. Start with `npm run tauri dev`; confirm desktop content is visible around the panel.
 2. Drag using its header; toggle always-on-top and compare against another window.
@@ -111,3 +120,7 @@ Reference: [Tauri configuration](https://v2.tauri.app/reference/config/),
 [tray](https://v2.tauri.app/learn/system-tray/),
 [single instance](https://v2.tauri.app/plugin/single-instance/),
 [logging](https://v2.tauri.app/plugin/logging/).
+
+## License
+
+This project is open-source and available under the [MIT License](LICENSE).
